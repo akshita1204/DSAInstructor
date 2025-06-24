@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DSA Instructor AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --primary-color: #1e88e5;
+      --secondary-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --bg-color: #121212;
+      --ai-msg-bg: #1f2937;
+      --user-msg-bg: #2563eb;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--text-color);
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      height: 85vh;
+      background: var(--secondary-color);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: var(--primary-color);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .chat-header .logo {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 5px;
+    }
+
+    .chat-header h2 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .chat-header p {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background-color: var(--secondary-color);
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 12px 18px;
+      border-radius: 18px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message p {
+      margin: 0;
+    }
+
+    .message pre {
+      background-color: #2d2d2d;
+      color: #f8f8f2;
+      padding: 1em;
+      border-radius: 8px;
+      margin: 10px 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    .message code {
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    .ai-message {
+      background: var(--ai-msg-bg);
+      color: var(--text-color);
+      align-self: flex-start;
+      border-top-left-radius: 5px;
+    }
+
+    .user-message {
+      background: var(--user-msg-bg);
+      color: white;
+      align-self: flex-end;
+      border-top-right-radius: 5px;
+    }
+
+    .message.loading {
+      align-self: flex-start;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .message.loading .dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--primary-color);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .message.loading .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    .message.loading .dot:nth-child(3) {
+      animation-delay: -0.32s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+
+      40% {
+        transform: scale(1.0);
+      }
+    }
+
+    .chat-input-form {
+      display: flex;
+      padding: 15px;
+      background: #1a1a1a;
+      border-top: 1px solid #333;
+    }
+
+    #user-input {
+      flex-grow: 1;
+      border: none;
+      padding: 12px;
+      border-radius: 25px;
+      background: #2a2a2a;
+      color: white;
+      font-size: 1em;
+      outline: none;
+      margin-right: 10px;
+    }
+
+    #send-btn {
+      background: var(--primary-color);
+      border: none;
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    #send-btn:hover {
+      background-color: #3a7bc8;
+      transform: scale(1.1);
+    }
+
+    #send-btn:disabled {
+      background-color: #a0c4e8;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <img src="https://static.vecteezy.com/system/resources/previews/009/035/982/non_2x/dsa-logo-dsa-letter-dsa-letter-logo-design-initials-dsa-logo-linked-with-circle-and-uppercase-monogram-logo-dsa-typography-for-technology-business-and-real-estate-brand-vector.jpg" alt="logo" class="logo">
+      <h2>DSA Instructor AI</h2>
+      <p>Ask any questions related to Data Structures & Algorithms</p>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="message ai-message">
+        <p>Hello! I am your DSA Instructor. Feel free to ask anything related to Data Structures and Algorithms.</p>
+      </div>
+    </div>
+    <form class="chat-input-form" id="chat-form">
+      <input type="text" id="user-input" placeholder="Type your question here..." autocomplete="off" required />
+      <button type="submit" id="send-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M3 20v-6l8-2l-8-2V4l19 8z" />
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const chatForm = document.getElementById("chat-form");
+      const userInputField = document.getElementById("user-input");
+      const chatMessages = document.getElementById("chat-messages");
+      const sendBtn = document.getElementById("send-btn");
+
+      const API_KEY = "AIzaSyBGiGmUR-5uSVzmGYbhSrUi7NAdKQdpgtQ";
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+      const SYSTEM_INSTRUCTION = "You are a DSA Instructor. You'll only reply to the problem related to Data Structure and Algorithm. You have to solve query of users in the simplest way. If user asks any question which is not related to DSA reply that you have no idea about these things, you are a dsa instructor and can answer query related to that only";
+
+      chatForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const userInput = userInputField.value.trim();
+        if (!userInput) return;
+
+        addUserMessage(userInput);
+        userInputField.value = "";
+        sendBtn.disabled = true;
+
+        showLoadingIndicator();
+
+        try {
+          const requestBody = {
+            contents: [{ parts: [{ text: userInput }] }],
+            systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] }
+          };
+
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+          });
+
+          hideLoadingIndicator();
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error.message || "Failed to fetch response.");
+          }
+
+          const data = await response.json();
+          const aiResponse = data.candidates[0].content.parts[0].text;
+          addAiMessage(aiResponse);
+        } catch (error) {
+          console.error("Fetch Error:", error);
+          addAiMessage("Sorry, something went wrong. Error: " + error.message);
+        } finally {
+          sendBtn.disabled = false;
+          userInputField.focus();
+        }
+      });
+
+      function addUserMessage(message) {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", "user-message");
+        messageElement.innerHTML = `<p>${escapeHtml(message)}</p>`;
+        chatMessages.appendChild(messageElement);
+        scrollToBottom();
+      }
+
+      function addAiMessage(message) {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", "ai-message");
+
+        let formattedMessage = escapeHtml(message)
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/```([\s\S]*?)```/g, (_, p1) => `<pre><code>${p1}</code></pre>`)
+          .replace(/`(.*?)`/g, '<code>$1</code>')
+          .replace(/\n/g, '<br>');
+
+        messageElement.innerHTML = formattedMessage;
+        chatMessages.appendChild(messageElement);
+        scrollToBottom();
+      }
+
+      function showLoadingIndicator() {
+        const loadingElement = document.createElement("div");
+        loadingElement.id = "loading-indicator";
+        loadingElement.classList.add("message", "ai-message", "loading");
+        loadingElement.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+        chatMessages.appendChild(loadingElement);
+        scrollToBottom();
+      }
+
+      function hideLoadingIndicator() {
+        const loadingElement = document.getElementById("loading-indicator");
+        if (loadingElement) loadingElement.remove();
+      }
+
+      function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function escapeHtml(text) {
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+      }
+    });
+  </script>
+</body>
+</html>
